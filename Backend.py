@@ -17,8 +17,8 @@ import inflect
 import time
 nltk.download('stopwords')
 
-# from nltk.stem import WordNetLemmatizer
-# nltk.download('wordnet')
+from nltk.stem import WordNetLemmatizer
+nltk.download('wordnet')
 
 bucket_name = "209234103_final"
 
@@ -44,16 +44,16 @@ PageViews_dict = download_index_from_storage("PageViews/PageViews_index.pkl")
 # Index_Body_BM25 = download_index_from_storage("Body_BM25/Body_BM25_index.pkl")
 
 # Import inverted indexes no stemming
-Index_Title = download_index_from_storage("Title_no_stem/Title_no_stem_index.pkl")
-Index_Body = download_index_from_storage("Body_no_stem/Body_no_stem_index.pkl")
-Index_Title_BM25 = download_index_from_storage("Title_no_stem_BM25/Title_no_stem_BM25_index.pkl")
-Index_Body_BM25 = download_index_from_storage("Body_no_stem_BM25/Body_no_stem_BM25_index.pkl")
+# Index_Title = download_index_from_storage("Title_no_stem/Title_no_stem_index.pkl")
+# Index_Body = download_index_from_storage("Body_no_stem/Body_no_stem_index.pkl")
+# Index_Title_BM25 = download_index_from_storage("Title_no_stem_BM25/Title_no_stem_BM25_index.pkl")
+# Index_Body_BM25 = download_index_from_storage("Body_no_stem_BM25/Body_no_stem_BM25_index.pkl")
 
 # Import inverted indexes lemmatization
-# Index_Title = download_index_from_storage("Title_lemm/Title_lemm_index.pkl")
-# Index_Body = download_index_from_storage("Body_lemm/Body_lemm_index.pkl")
-# Index_Title_BM25 = download_index_from_storage("Title_lemm_BM25/Title_lemm_BM25_index.pkl")
-# Index_Body_BM25 = download_index_from_storage("Body_lemm_BM25/Body_lemm_BM25_index.pkl")
+Index_Title = download_index_from_storage("Title_lemm/Title_lemm_index.pkl")
+Index_Body = download_index_from_storage("Body_lemm/Body_lemm_index.pkl")
+Index_Title_BM25 = download_index_from_storage("Title_lemm_BM25/Title_lemm_BM25_index.pkl")
+Index_Body_BM25 = download_index_from_storage("Body_lemm_BM25/Body_lemm_BM25_index.pkl")
 
 # Import Word2Vec model
 # Word2Vec_model = download_index_from_storage("Word2VEC_Model/Word2VEC_Model_index.pkl"
@@ -139,8 +139,8 @@ def tokenize_query(text):
 
     # stemmer = PorterStemmer()
     # tokens = [stemmer.stem(token) for token in tokens]
-    # lemmatizer = WordNetLemmatizer()
-    # tokens = [lemmatizer.lemmatize(token) for token in tokens]
+    lemmatizer = WordNetLemmatizer()
+    tokens = [lemmatizer.lemmatize(token) for token in tokens]
 
     numbers = [v for match in RE_TOKENIZE.finditer(text)
                for k, v in match.groupdict().items()
@@ -333,7 +333,7 @@ def candidate_tf_idf(query, index, query_idf):
     if index == Index_Title:
         threshold = 0
     else:
-        threshold = 5
+        threshold = 3
     max_documents = 50000
     query = sorted(query, key=lambda term: index.idf.get(term, 0), reverse=True)
     threads = []
@@ -423,8 +423,8 @@ def candidate_doc_BM25(query, index, query_idf):
     if index == Index_Title_BM25:
         threshold = 0
     else:
-        threshold = 5
-    max_documents = 50000
+        threshold = 3
+    max_documents = 150000
     query = sorted(query, key=lambda term: index.idf.get(term, 0), reverse=True)
     threads = []
 
@@ -487,7 +487,7 @@ def search_tf_idf(query, index):
     ## Calculate the cosine similarity scores between candidate documents and the query
     scores_dict = cosSim(candidate_docs, index, query_tf_idf)
     ## Retrieve the top 5000 documents based on their scores
-    result_rank = get_top_N_dict(scores_dict, 5000)
+    result_rank = get_top_N_dict(scores_dict, 7500)
     return result_rank
 
 
@@ -521,7 +521,7 @@ def search_BM25(query, index):
     if candidate_docs is None:
         return []
     ## Retrieve the top 5000 documents based on their scores
-    result_rank = get_top_N_dict(candidate_docs, 5000)
+    result_rank = get_top_N_dict(candidate_docs, 7500)
     return result_rank
 
 
